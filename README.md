@@ -1,5 +1,7 @@
 # CodexWebProxyApi
 
+[简体中文](README.md) | [English](README_EN.md)
+
 让本机 Codex 通过你日常使用、已经登录 ChatGPT 的普通 Chrome 调用 ChatGPT Web，并在实验性 Agent 模式下把网页模型生成的工具调用安全地交回 Codex 执行。
 
 > [!IMPORTANT]
