@@ -1,0 +1,6 @@
+{
+  "name": "codex-chatgpt-web-provider",
+  "version": "0.1.6",
+  "description": "Operate a local transparent Codex Responses provider backed by ChatGPT Web. No MCP tunnel is included.",
+  "skills": "./skills/"
+}

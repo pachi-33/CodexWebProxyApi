@@ -1,0 +1,41 @@
+{
+  "name": "codex-web-proxy-api",
+  "version": "0.1.6",
+  "private": true,
+  "type": "module",
+  "description": "Local Responses-compatible proxy that lets Codex use an authenticated ChatGPT Web session in normal Chrome",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pachi-33/CodexWebProxyApi.git"
+  },
+  "bugs": {
+    "url": "https://github.com/pachi-33/CodexWebProxyApi/issues"
+  },
+  "homepage": "https://github.com/pachi-33/CodexWebProxyApi#readme",
+  "keywords": [
+    "codex",
+    "chatgpt",
+    "responses-api",
+    "chrome-extension",
+    "local-proxy"
+  ],
+  "bin": {
+    "codex-chatgpt-web": "./src/cli.mjs"
+  },
+  "scripts": {
+    "start": "node src/cli.mjs serve",
+    "login": "node src/cli.mjs login",
+    "status": "node src/cli.mjs status",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22.15"
+  },
+  "dependencies": {
+    "playwright-core": "^1.55.0",
+    "turndown": "^7.2.0",
+    "turndown-plugin-gfm": "^1.0.2",
+    "ws": "^8.18.3"
+  }
+}

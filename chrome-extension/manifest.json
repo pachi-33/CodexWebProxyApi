@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Codex ChatGPT Web Local Bridge",
+  "version": "0.1.6",
+  "description": "Connects the local transparent Codex provider to ChatGPT in your normal Chrome profile.",
+  "minimum_chrome_version": "116",
+  "permissions": ["tabs"],
+  "host_permissions": [
+    "https://chatgpt.com/*",
+    "http://127.0.0.1/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src ws://127.0.0.1:4319"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://chatgpt.com/*"],
+      "js": ["composer-state.js", "content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "Open ChatGPT provider tab"
+  }
+}
