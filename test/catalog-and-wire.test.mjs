@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { augmentModelCatalog } from "../src/native-proxy.mjs";
+import { augmentModelCatalog, webOnlyModelCatalog } from "../src/native-proxy.mjs";
 import { createResponseEnvelope, ResponsesSSE, resultToOutput } from "../src/responses-wire.mjs";
 
 test("catalog keeps native rows and adds read-only and agent browser models", () => {
@@ -17,6 +17,13 @@ test("catalog keeps native rows and adds read-only and agent browser models", ()
   assert.equal(result.models[1].multi_agent_version, "disabled");
   assert.equal(result.models[2].tool_mode, null);
   assert.equal(source.models.length, 1);
+});
+
+test("web-only catalog contains both browser models without a native template", () => {
+  const result = webOnlyModelCatalog();
+  assert.deepEqual(result.models.map(model => model.slug), ["chatgpt-web/browser", "chatgpt-web/agent"]);
+  assert.equal(result.models[0].supported_in_api, true);
+  assert.equal(result.models[1].tool_mode, null);
 });
 
 test("agent tool result becomes standard Responses function-call SSE", () => {

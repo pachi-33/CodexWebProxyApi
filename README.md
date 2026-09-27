@@ -43,8 +43,9 @@ http://127.0.0.1:4318/v1
 
 ### Responses 兼容层
 
-- `/v1/models`：保留原生模型，并加入两个网页模型。
+- `/v1/models`：携带 Codex bearer 时保留原生模型并加入两个网页模型；不携带认证时返回两个网页模型。
 - `/v1/responses`：支持流式 SSE 和非流式 Responses JSON。
+- `chatgpt-web/*` 请求不需要 API key；只有原生 Codex 模型透传需要 Codex 登录凭据。
 - 支持 `previous_response_id` 和 Codex 的无状态工具历史重放。
 - 原生模型继续使用 Codex 原有认证，透明转发到官方 backend。
 - 支持 Codex 的 zstd 压缩请求体。
@@ -152,6 +153,25 @@ openai_base_url = "http://127.0.0.1:4318/v1"
 - `ChatGPT Web (Browser)`：只读网页问答；
 - `ChatGPT Web (Agent, experimental)`：允许网页模型请求 Codex 的本地工具。
 
+#### 免 key 的网页模型专用配置
+
+如果只需要两个网页模型，不需要在同一个 provider 中透传原生 Codex 模型，可以把用户级 `~/.codex/config.toml` 配置为无认证的自定义 provider：
+
+```toml
+model = "chatgpt-web/agent"
+model_provider = "chatgpt_web"
+
+[model_providers.chatgpt_web]
+name = "ChatGPT Web Local"
+base_url = "http://127.0.0.1:4318/v1"
+wire_api = "responses"
+requires_openai_auth = false
+```
+
+不要同时设置 `env_key`、`experimental_bearer_token` 或 `[model_providers.chatgpt_web.auth]`。此模式下 Codex 向本地 provider 发出的网页模型请求不携带 key。需要切换成只读问答时，将 `model` 改为 `chatgpt-web/browser`。
+
+这个配置不会提供原生 Codex 模型透传；原生模型仍然需要 OpenAI/ChatGPT 登录凭据。若要同时保留原生模型和网页模型，请继续使用上面的 `node src/cli.mjs install` 透明路由方式。
+
 ### 5. 验证
 
 Browser 模式：
@@ -218,6 +238,7 @@ node src/cli.mjs serve --transport playwright
 ## 安全设计
 
 - HTTP provider 固定监听 `127.0.0.1`；非 loopback 地址会被拒绝。
+- 网页模型端点不要求 key，因此 loopback 限制是其访问边界；不要做端口转发或反向代理。
 - WebSocket bridge 固定监听 `127.0.0.1`，只接受 `chrome-extension://` Origin。
 - Node.js 不读取或保存 Chrome Cookie。
 - 原生 Codex bearer token 只在内存中透明转发，不写日志或磁盘。

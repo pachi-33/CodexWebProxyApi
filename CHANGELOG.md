@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here.
 
+## [Unreleased]
+
+### Added
+
+- Keyless web-only operation: unauthenticated `/v1/models` requests receive the two `chatgpt-web/*` models, and their Responses requests require no API key.
+- Documented a no-auth Codex custom-provider configuration for local web models.
+
+### Security
+
+- Native Codex passthrough continues to require bearer authentication; keyless access remains limited to the loopback-only web-model routes.
+
 ## [0.1.6] - 2026-09-27
 
 First public release.

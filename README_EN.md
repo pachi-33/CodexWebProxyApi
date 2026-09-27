@@ -43,8 +43,9 @@ The entire chain listens on loopback only. It does not require a public IP addre
 
 ### Responses compatibility layer
 
-- `/v1/models` preserves the native model list and adds the two web-backed models.
+- With a Codex bearer token, `/v1/models` preserves the native model list and adds the two web-backed models; without authentication, it returns the two web-backed models only.
 - `/v1/responses` supports both streaming SSE and non-streaming Responses JSON.
+- `chatgpt-web/*` requests require no API key; only native Codex passthrough requires Codex sign-in credentials.
 - Supports `previous_response_id` and Codex's stateless tool-history replay.
 - Native models continue using existing Codex authentication and are transparently forwarded to the official backend.
 - Supports zstd-compressed requests from Codex.
@@ -152,6 +153,25 @@ Restart Codex, then choose one of these entries in the model selector:
 - `ChatGPT Web (Browser)` for web-backed text conversations without local tools;
 - `ChatGPT Web (Agent, experimental)` to let the web model request Codex local tools.
 
+#### Keyless web-only configuration
+
+If you need only the two web-backed models and do not need native Codex passthrough through the same provider, configure a keyless custom provider in the user-level `~/.codex/config.toml`:
+
+```toml
+model = "chatgpt-web/agent"
+model_provider = "chatgpt_web"
+
+[model_providers.chatgpt_web]
+name = "ChatGPT Web Local"
+base_url = "http://127.0.0.1:4318/v1"
+wire_api = "responses"
+requires_openai_auth = false
+```
+
+Do not also set `env_key`, `experimental_bearer_token`, or `[model_providers.chatgpt_web.auth]`. In this mode, Codex sends no key with web-model requests to the local provider. To use read-only conversations instead, change `model` to `chatgpt-web/browser`.
+
+This configuration does not provide native Codex passthrough, which still requires OpenAI/ChatGPT credentials. To keep native and web-backed models together, continue using the transparent `node src/cli.mjs install` route described above.
+
 ### 5. Verify the setup
 
 Browser mode:
@@ -218,6 +238,7 @@ Do not point Playwright at the user-data directory of a regular Chrome instance 
 ## Security design
 
 - The HTTP provider is fixed to `127.0.0.1`; non-loopback addresses are rejected.
+- Web-model endpoints do not require a key, so loopback binding is their access boundary; do not port-forward or reverse-proxy them.
 - The WebSocket bridge is fixed to `127.0.0.1` and accepts only a `chrome-extension://` Origin.
 - Node.js does not read or store Chrome cookies.
 - The native Codex bearer token is transparently forwarded in memory and is never written to logs or disk.

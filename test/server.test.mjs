@@ -256,3 +256,50 @@ test("streaming response uses Responses SSE and models preserve native catalog",
     await provider.close();
   }
 });
+
+test("model catalog works without authorization and does not call the native backend", async () => {
+  const browser = new FakeBrowser();
+  let nativeFetches = 0;
+  const provider = createProviderServer({
+    port: 0,
+    browserClient: browser,
+    fetchImpl: async () => {
+      nativeFetches += 1;
+      throw new Error("native backend must not be called for an unauthenticated catalog");
+    },
+  });
+  const address = await provider.listen();
+  try {
+    const response = await fetch(address.baseUrl + "/v1/models");
+    assert.equal(response.status, 200);
+    assert.deepEqual((await response.json()).models.map(model => model.slug), [
+      "chatgpt-web/browser",
+      "chatgpt-web/agent",
+    ]);
+    assert.equal(nativeFetches, 0);
+  } finally {
+    await provider.close();
+  }
+});
+
+test("web responses work without authorization while native passthrough still requires it", async () => {
+  const { provider, base } = await fixture();
+  try {
+    const webResponse = await fetch(base + "/v1/responses", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ model: "chatgpt-web/browser", input: "no key", stream: false }),
+    });
+    assert.equal(webResponse.status, 200);
+
+    const nativeResponse = await fetch(base + "/v1/responses", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ model: "native", input: "no key", stream: false }),
+    });
+    assert.equal(nativeResponse.status, 401);
+    assert.equal((await nativeResponse.json()).error.code, "missing_authorization");
+  } finally {
+    await provider.close();
+  }
+});

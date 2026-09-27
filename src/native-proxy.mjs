@@ -106,6 +106,10 @@ export function augmentModelCatalog(value) {
   };
 }
 
+export function webOnlyModelCatalog() {
+  return augmentModelCatalog({ models: [] });
+}
+
 export async function pipeFetchResponse(upstream, res, transformJson) {
   let body = upstream.body;
   const headers = new Headers(upstream.headers);

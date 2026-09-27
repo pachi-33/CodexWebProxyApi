@@ -4,7 +4,7 @@ import { DEFAULT_HOST, DEFAULT_PORT, WEB_MODEL_PREFIX } from "./constants.mjs";
 import { ContinuationStore } from "./continuations.mjs";
 import { errorBody, ProviderError } from "./errors.mjs";
 import { parseJsonRequestBody } from "./http-body.mjs";
-import { augmentModelCatalog, fetchNative, pipeFetchResponse } from "./native-proxy.mjs";
+import { augmentModelCatalog, fetchNative, pipeFetchResponse, webOnlyModelCatalog } from "./native-proxy.mjs";
 import { compileBrowserPrompt, parseBrowserClientResult, parseResponsesRequest } from "./prompt-compiler.mjs";
 import {
   completedResponseFromOutput,
@@ -67,6 +67,10 @@ export function createProviderServer(options = {}) {
         });
       }
       if (req.method === "GET" && url.pathname === "/v1/models") {
+        const authorization = String(req.headers.authorization || "");
+        if (!authorization.startsWith("Bearer ")) {
+          return json(res, 200, webOnlyModelCatalog());
+        }
         const controller = new AbortController();
         req.once("aborted", () => controller.abort(new Error("Client disconnected")));
         const upstream = await fetchNative(req, undefined, { fetchImpl: options.fetchImpl, signal: controller.signal });
